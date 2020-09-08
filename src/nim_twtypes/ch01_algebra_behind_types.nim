@@ -1,3 +1,5 @@
+{.push raises:[].}
+{.push tags:[].}
 include p
 # Cardinality
 
@@ -174,7 +176,14 @@ proc emptyBoard2*(): TicTacToe2[Option[bool]] =
 
 # Exercise 1.4-i
 # Use Curry-Howard to prove that (a^b)^c == a^(b*c). That is,
-# provide a function of type `((b,c) -> a, (b, c)) -> a` and
-# `((b,c) -> a, b, c) -> a`.
-proc example*[A, B, C](f: proc (x: (B, C)): A, x: (B, C)): A =
-  f(x)
+# provide a function of type `((x: b,y: c) -> a, (b, c)) -> a` and
+# `((x: (b,c)) -> a) -> (x: b, y: c) -> a`.
+func curry*[A, B, C](f: proc (x: B, y: C): A {.noSideEffect.}, x: (B, C)): A =
+  f(x[0], x[1])
+
+let _ = curry[type(nil), type(nil), type(nil)] # For instantiating generics
+
+func uncurry*[A, B, C](f: proc (x: (B, C)): A): proc (x: B, y: C): A =
+  (x: B, y: C) => x
+
+let _ = uncurry[type(nil), type(nil), type(nil)]
