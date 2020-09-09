@@ -15,8 +15,8 @@ include p
 # Isomorphisms
 
 # If we can convert back and forth two types, we say that they are isomorphic
-proc convertTo*[S, T](x: S): T = discard
-proc convertFrom*[S, T](x: T): S = discard
+func convertTo*[S, T](x: S): T = discard
+func convertFrom*[S, T](x: T): S = discard
 
 # Isomorphism :
 # 1. ` x.convertTo.convertFrom == id`
@@ -28,19 +28,19 @@ variant Spin:
   Down
 
 # Isomorphism 1
-proc boolToSpin1*(b: bool): Spin =
+func boolToSpin1*(b: bool): Spin =
   result = if b: Up() else: Down()
 
-proc spinToBool1*(s: Spin): bool =
+func spinToBool1*(s: Spin): bool =
   match s:
     Up(): true
     Down(): false
 
 # Isomorphism 2
-proc boolToSpin2*(b: bool): Spin =
+func boolToSpin2*(b: bool): Spin =
   result = if b: Down() else: Up()
 
-proc spinToBool2*(s: Spin): bool =
+func spinToBool2*(s: Spin): bool =
   match s:
     Down(): true
     Up(): false
@@ -84,19 +84,19 @@ type
 # In this case, |MixedFraction[A]| = |int8| * |A| * |A| = 256 * |A| * |A|
 
 # We can prove that `a * 1 = a` by showing an isomorphism between `(A, nil)` and `A`:
-proc prodNilTo*[A](a: A): (A, type(nil)) =
+func prodNilTo*[A](a: A): (A, type(nil)) =
   (a, nil)
 
-proc prodNilFrom*[A](t: (A, type(nil))): A =
+func prodNilFrom*[A](t: (A, type(nil))): A =
   t.first
 
 # We can also prove that `a + 0 = a` by showing an isomorsphism between `Either[A, void]` and A:
-proc sumUnitTo*[A](x: Either[A, void]): A =
+func sumUnitTo*[A](x: Either[A, void]): A =
   match x:
     Left(@a): a
     Right(@b): discard
 
-proc sumUnitFrom*[A](x: A): Either[A, void] =
+func sumUnitFrom*[A](x: A): Either[A, void] =
   Left(x)
 
 # Function types (`=>`) are exponential types.
@@ -144,7 +144,7 @@ type
     ]
 
 # Here's a possible example, we have 9 cells due to the 9 fields:
-proc emptyBoard*(): TicTacToe[Option[bool]] =
+func emptyBoard*(): TicTacToe[Option[bool]] =
   (none(bool), none(bool), none(bool),
    none(bool), none(bool), none(bool),
    none(bool), none(bool), none(bool))
@@ -169,7 +169,7 @@ type
   TicTacToe2[A] = (r: OneOfThree, c: OneOfThree) -> A
 
 # And rewrite emptyBoard:
-proc emptyBoard2*(): TicTacToe2[Option[bool]] =
+func emptyBoard2*(): TicTacToe2[Option[bool]] =
   (r: OneOfThree, c: OneOfThree) => none(bool)
 
 # The Curry-Howard Isomorphism
@@ -178,12 +178,26 @@ proc emptyBoard2*(): TicTacToe2[Option[bool]] =
 # Use Curry-Howard to prove that (a^b)^c == a^(b*c). That is,
 # provide a function of type `((x: b,y: c) -> a, (b, c)) -> a` and
 # `((x: (b,c)) -> a) -> (x: b, y: c) -> a`.
-func curry*[A, B, C](f: proc (x: B, y: C): A {.noSideEffect.}, x: (B, C)): A =
+proc uncurry*[A, B, C](f: (x: B, y: C) -> A, x: (B, C)): A =
   f(x[0], x[1])
 
-let _ = curry[type(nil), type(nil), type(nil)] # For instantiating generics
+let _ = uncurry[int, int, int] # For instantiating generics
 
-func uncurry*[A, B, C](f: proc (x: (B, C)): A): proc (x: B, y: C): A =
-  (x: B, y: C) => x
+proc curry*[A, B, C](f: (x: (B, C)) -> A): ((x: B, y: C) -> A) =
+  (x: B, y: C) => f((x, y))
 
-let _ = uncurry[type(nil), type(nil), type(nil)]
+let _ = curry[int, int, int]
+
+# Exercise 1.4-ii
+# Give a proof of the exponent law that a^b * a^c = a^(b+c)
+proc productRuleFrom*[A, B, C](f: (x: B) -> A, g: (y: C) -> A): ((z: Either[B, C]) -> A) =
+  ((z: Either[B, C]) => (
+      block:
+        match z:
+          Left(l: left): f(left)
+          Right(r: right): g(right)
+  ))
+
+
+
+let _ = productRuleFrom[int, int, int]
