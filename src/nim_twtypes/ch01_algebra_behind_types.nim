@@ -1,5 +1,5 @@
-{.push raises:[].}
-{.push tags:[].}
+{.push raises: [].}
+{.push tags: [].}
 include p
 # Cardinality
 
@@ -190,12 +190,13 @@ let _ = curry[int, int, int]
 
 # Exercise 1.4-ii
 # Give a proof of the exponent law that a^b * a^c = a^(b+c)
-proc productRuleFrom*[A, B, C](f: (x: B) -> A, g: (y: C) -> A): ((z: Either[B, C]) -> A) =
+proc productRuleFrom*[A, B, C](f: (x: B) -> A, g: (y: C) -> A):
+  ((z: Either[B, C]) -> A) =
   ((z: Either[B, C]) => (
       block:
-        match z:
-          Left(l: left): f(left)
-          Right(r: right): g(right)
+    match z:
+      Left(l: left): f(left)
+      Right(r: right): g(right)
   ))
 
 
